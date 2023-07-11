@@ -1,4 +1,4 @@
-import prisma from "../../../lib/prisma";
+import prisma from "../../../../lib/prisma";
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -54,7 +54,7 @@ async function Read(req: NextApiRequest, res: NextApiResponse) {
             
             fazenda,
             responsavel,
-             endereco
+            endereco
            }
       });
     res.json(result);

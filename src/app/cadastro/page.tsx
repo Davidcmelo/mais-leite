@@ -1,4 +1,4 @@
-import Cadastro from "@/Components/Cadastro";
+import Cadastro from "@/Components/Fazendas";
 import Configuracoes from "@/Components/Configuracoes";
 import Container from "@/Components/Container";
 

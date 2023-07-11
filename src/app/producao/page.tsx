@@ -5,7 +5,7 @@ import Producao from "@/Components/Producao"
 const Producoes = () =>{
     return(
         <Container>
-            <Producao/>
+            <Producao />
         </Container>
     )
 }

@@ -8,7 +8,7 @@ interface Props {
   
   export default function Container({ children }: Props) {
     return (
-      <div className='flex '>
+      <div className='flex h-full'>
           <Menu/>
           <div className="w-full">
               <Header/>

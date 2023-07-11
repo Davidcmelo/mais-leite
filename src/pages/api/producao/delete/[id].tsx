@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function delet(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     
 
     if(req.method === 'DELETE') {
     try {
-        const result = await prisma.fazendas.delete({
+        const result = await prisma.litros.delete({
             where: {
                 id: Number(req.query.id)
             },
