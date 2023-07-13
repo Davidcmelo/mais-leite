@@ -10,8 +10,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DoneOutlineRoundedIcon from '@mui/icons-material/DoneOutlineRounded';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
+import { format } from 'date-fns';
 
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 
 interface CadastrosLitros {
@@ -19,8 +23,8 @@ interface CadastrosLitros {
     nome: string;
     responsavel: string;
     endereco: string;
-    time: Date;
-    litros:Number;
+    time: any;
+    litros:any;
     fazendaId: string;
     fazenda: string;
 }
@@ -30,8 +34,8 @@ interface CadastrosFazendas {
   nome: string;
   responsavel: string;
   endereco: string;
-  time: Date;
-  litros:Number;
+  time: any;
+  litros:any;
   fazendaId: string;
   fazenda: string;
 }
@@ -40,11 +44,17 @@ interface CadastrosFazendas {
 export default function Producao(){
     const [open, setOpen] = useState(false);
     const [abrirTable, setAbrirTable] = useState(false);
-    const [cadastrosFazendas, setCadastrosFazendas] = useState<CadastrosFazendas[]>([])
-    const [litros, setLitros] = useState('')
+    const [cadastrosFazendas, setCadastrosFazendas] = useState<CadastrosFazendas[]>([]);
+    const [litros, setLitros] = useState('');
     const [fazendaId, setFazendaId] = useState<string | null>(null);
-    const [cadastrosLitros, setCadastrosLitros]=useState<CadastrosLitros[]>([])
-    const [dataColeta, setDataColeta]= useState("")
+    const [cadastrosLitros, setCadastrosLitros]=useState<CadastrosLitros[]>([]);
+    const [dataColeta, setDataColeta]= useState("");
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+    const [filteredCadastros, setFilteredCadastros] = useState<CadastrosLitros[]>([]);
+    const [searchValue, setSearchValue] = useState("");
+
+
 
     // abrir modal
     function Open(){
@@ -96,7 +106,8 @@ export default function Producao(){
               console.log('Dados salvos com sucesso');
               // Atualize o estado de 'cadastros' com os novos dados
               setCadastrosFazendas(updatedCadastros);
-              await fetchLitrosData();
+              const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+              await fetchLitrosData(formattedDate);
               setDataColeta(data.dataColeta)
               
             } else {
@@ -113,7 +124,7 @@ export default function Producao(){
       }
     }
       
-    async function fetchLitrosData() {
+    async function fetchLitrosData(date:any) {
       try {
         const response = await fetch('/api/producao/read/read');
         if (response.ok) {
@@ -137,8 +148,9 @@ export default function Producao(){
       }
     }
     useEffect(() => {
-      fetchLitrosData();
-    }, []); 
+        const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+        fetchLitrosData(formattedDate);
+      }, [selectedDate]);
 
     
       // buscar dados do banco
@@ -196,8 +208,33 @@ export default function Producao(){
         console.error("Erro na requisição:", error);
       }
     }
-    
 
+ 
+
+      const filtrarRegistros = () => {
+        const dataSelecionada = format(selectedDate, 'yyyy-MM-dd');
+        const registrosFiltrados = cadastrosLitros.filter(registro => {
+          const dataRegistro = format(new Date(registro.time), 'yyyy-MM-dd');
+          return dataRegistro === dataSelecionada;
+        });
+        // Atualize o estado dos registros filtrados
+        // (você pode usar um novo estado ou sobrescrever o estado existente)
+        setFilteredCadastros(registrosFiltrados);
+      };
+
+      const handleSearch = () => {
+        const filteredCadastros = cadastrosLitros.filter(
+          (cadastro) =>
+            cadastro.nome.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        setFilteredCadastros(filteredCadastros);
+      };
+
+      const handleReset = () => {
+        setSearchValue("");
+        setSelectedDate(new Date());
+        setFilteredCadastros(cadastrosLitros);
+      };
 
     return(
         <div>
@@ -208,17 +245,17 @@ export default function Producao(){
                 <button onClick={OpenTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold text-3xl py-6 px-16 rounded transition duration-300 ease-in-out">
                     Consultar tabela <SearchIcon sx={{fontSize:'2.5rem'}} />
                 </button>
+
                 <button onClick={Open} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-3xl py-6 px-16 rounded transition duration-300 ease-in-out">
-                Cadastrar produção  <AddIcon sx={{fontSize:'2.5rem'}}/>
+                    Cadastrar produção  <AddIcon sx={{fontSize:'2.5rem'}}/>
                 </button>
                 
             </div>
             <Modal
-            open={open}
-            // onClose={handleClose}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-        >
+                open={open}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
             <div className="flex justify-center flex-col items-center h-screen">
                 <div className="border-2 border-solid flex rounded justify-center items-center flex-col w-3/4 h-3/5 md:w-1/2 gap-5 bg-gradient-to-b from-teal-900 to-emerald-950 relative">
                         
@@ -237,7 +274,6 @@ export default function Producao(){
                       onChange={(option) => setFazendaId(option?.value || null)} // Atualiza fazendaId com o valor selecionado
                     />
 
-                    
                     <label htmlFor="input4" className="text-white md:text-3xl">Litros</label>
                     <TextField  id="input4" className="bg-gray-200 rounded w-1/2 " placeholder="Litros"  type="number" required value={litros} onChange={(e) => setLitros(e.target.value)}/>
                     
@@ -246,8 +282,26 @@ export default function Producao(){
                 </div>
             </div>
         </Modal>
-        {abrirTable &&(
+        {abrirTable && (
             <>
+                <div className=" flex justify-center mb-10 ">
+                    <DatePicker 
+                        selected={selectedDate} 
+                        onChange={(date:Date) => setSelectedDate(date)} 
+                        className="border-2 border-emerald-900 rounded" 
+                        dateFormat="dd/MM/yyyy"
+                    />
+                    <button onClick={() => filtrarRegistros()} className="bg-emerald-900 hover:bg-emerald-700 text-white px-3 ml-1 mr-1 rounded transition duration-300 ease-in-out">Buscar data de coleta</button>
+                    <input
+                        type="text"
+                        placeholder="Buscar por nome de fazenda"
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        className="border-2 border-emerald-900 rounded"
+                    />
+                    <button onClick={handleSearch} className="bg-emerald-900 hover:bg-emerald-700 text-white px-3 ml-1 rounded transition duration-300 ease-in-out" >Buscar</button>
+                </div>
+
                 <div className=" flex justify-center ">
                     <table className="border-collapse rounded-md shadow-xl md:w-3/4 w-4/5 text-sm bg-gray-200">
                         <thead className="bg-emerald-900 text-white">
@@ -259,23 +313,40 @@ export default function Producao(){
                             </tr>
                         </thead>
                         <tbody className="text-center">
-                            {cadastrosLitros.map((cadastro: any) => (
+                        {filteredCadastros.length === 0 ? (
+                            <tr>
+                                <td className="p-2 border border-b-neutral-100" colSpan={4}>
+                                Nenhum dado encontrado para a data selecionada.
+                                </td>
+                            </tr>
+                            ) : (
+                            filteredCadastros.map((cadastro: any) => (
                                 <tr key={cadastro.id}>
-                                    <td className=" p-2 border border-b-neutral-100">{cadastro.nome}</td>
-                                    <td className=" p-2 border border-b-neutral-100">{cadastro.litros}</td>
-                                    <td className="p-2 border border-b-neutral-100"> {cadastro.time?.toLocaleDateString()}</td>
-                                    <td className=" p-2 border border-b-neutral-100">
-                                        <button onClick={() => handleDelete(cadastro.id)}><Delete /></button>
-                                    </td>
+                                <td className="p-2 border border-b-neutral-100">{cadastro.nome}</td>
+                                <td className="p-2 border border-b-neutral-100">{cadastro.litros}</td>
+                                <td className="p-2 border border-b-neutral-100">
+                                    {cadastro.time?.toLocaleDateString()}
+                                </td>
+                                <td className="p-2 border border-b-neutral-100">
+                                    <button onClick={() => handleDelete(cadastro.id)}>
+                                    <Delete />
+                                    </button>
+                                </td>
                                 </tr>
-                            ))}
+                            ))
+                            )}
                         </tbody>
                     </table>
                 </div>
                 <div className="flex justify-center mt-10">
-                    <button onClick={CloseTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-lg py-2 px-4 rounded transition duration-300 ease-in-out mb-10">
+                    <button onClick={CloseTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-lg py-2 px-4 rounded transition duration-300 ease-in-out mb-10 mx-2">
                         Fechar tabela   <CloseRoundedIcon />
                     </button>
+                    
+                    <button onClick={handleReset} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-lg py-2 px-4 rounded transition duration-300 ease-in-out mb-10 mx-2">
+                        Redefinir Pesquisas <RestartAltIcon/>
+                    </button>
+                
                 </div>
             </>
         )}
@@ -283,25 +354,3 @@ export default function Producao(){
         </div>
     )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                        {/* {
-                    cadastro.time?.toLocaleDateString("pt-BR", {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        year:'numeric' , 
-                        month:'numeric',
-                        day:'2-digit'
-                    })
-                } */}
