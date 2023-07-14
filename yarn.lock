@@ -3111,6 +3111,13 @@ react-is@^18.2.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
   integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
 
+react-month-picker@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/react-month-picker/-/react-month-picker-2.2.1.tgz#9476c1b196de490ba934ba38683d3387a00d6aae"
+  integrity sha512-FJoDanK58ql5z9+FR3KGxw/psUCnDEGWI5UCq74EAj/Pk7Q4SE8obCP69N61gRQzbHrxn8qarjxUfFY1XbTXvQ==
+  dependencies:
+    react-tapper "^0.1.23"
+
 react-onclickoutside@^6.12.2:
   version "6.13.0"
   resolved "https://registry.yarnpkg.com/react-onclickoutside/-/react-onclickoutside-6.13.0.tgz#e165ea4e5157f3da94f4376a3ab3e22a565f4ffc"
@@ -3138,6 +3145,11 @@ react-select@^5.7.3:
     prop-types "^15.6.0"
     react-transition-group "^4.3.0"
     use-isomorphic-layout-effect "^1.1.2"
+
+react-tapper@^0.1.23:
+  version "0.1.23"
+  resolved "https://registry.yarnpkg.com/react-tapper/-/react-tapper-0.1.23.tgz#c3fba199e9b97cc2221467a42ce60cb722140138"
+  integrity sha512-BLV2zRnpTeLQdSf7tUbk9JQ6Og5DKK66kjjbEkhj2Y4wURlIq8YtibWNceKRzBWYiRGcEzJbUZYAcKic4HZLUA==
 
 react-transition-group@^4.3.0, react-transition-group@^4.4.0, react-transition-group@^4.4.5:
   version "4.4.5"

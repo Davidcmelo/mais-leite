@@ -14,26 +14,39 @@ model Fazendas {
   responsavel String
   data        DateTime @default(now())
   litros      Litros[]
+  
 
   @@map("fazendas")
 }
 
 model Litros{
-    id          Int      @unique @default(autoincrement())
-    dataColeta        DateTime @default(now())
-    fazenda     Fazendas @relation(fields: [fazendaId], references: [id], onDelete: Cascade)
-    litros      Int
+  id          Int      @unique @default(autoincrement())
+  dataColeta  DateTime @default(now())
+  fazenda     Fazendas @relation(fields: [fazendaId], references: [id], onDelete: Cascade)
+  litros      Int
 
   fazendaId   Int
   @@map("litros")
 }
 
+model Pagamento {
+  id            Int     @id @default(autoincrement())
+  fazenda       String
+  litros        Float
+  valor         Decimal @db.Decimal(10, 2)
+  contaFinal    Decimal @db.Decimal(10, 2)
+  dataPagamento DateTime @default(now())
+
+  @@map("pagamento")
+}
+
+
 
 
 model User {
-  id Int @id @default (autoincrement ()) 
+  id    Int @id @default (autoincrement ()) 
   email String @unique 
-  name String? 
+  name  String? 
   senha String  
 
   @@map("user")

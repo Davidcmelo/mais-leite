@@ -242,11 +242,11 @@ export default function Producao(){
                 <h1 className={`${rajdhani.className} font-semibold text-emerald-950 md:text-7xl text-2xl text-center `}>Produção</h1>
                 <p className="text-center  text-lg font-semibold text-emerald-950">Produção de leite por fazenda</p>
                 
-                <button onClick={OpenTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold text-3xl py-6 px-16 rounded transition duration-300 ease-in-out">
+                <button onClick={OpenTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold md:text-3xl text-2xl p-2 md:py-6 md:px-16 rounded transition duration-300 ease-in-out">
                     Consultar tabela <SearchIcon sx={{fontSize:'2.5rem'}} />
                 </button>
 
-                <button onClick={Open} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-3xl py-6 px-16 rounded transition duration-300 ease-in-out">
+                <button onClick={Open} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  md:text-3xl text-2xl p-2 md:py-6 md:px-16 rounded transition duration-300 ease-in-out">
                     Cadastrar produção  <AddIcon sx={{fontSize:'2.5rem'}}/>
                 </button>
                 
@@ -284,22 +284,28 @@ export default function Producao(){
         </Modal>
         {abrirTable && (
             <>
-                <div className=" flex justify-center mb-10 ">
-                    <DatePicker 
-                        selected={selectedDate} 
-                        onChange={(date:Date) => setSelectedDate(date)} 
-                        className="border-2 border-emerald-900 rounded" 
-                        dateFormat="dd/MM/yyyy"
-                    />
-                    <button onClick={() => filtrarRegistros()} className="bg-emerald-900 hover:bg-emerald-700 text-white px-3 ml-1 mr-1 rounded transition duration-300 ease-in-out">Buscar data de coleta</button>
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome de fazenda"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        className="border-2 border-emerald-900 rounded"
-                    />
-                    <button onClick={handleSearch} className="bg-emerald-900 hover:bg-emerald-700 text-white px-3 ml-1 rounded transition duration-300 ease-in-out" >Buscar</button>
+                <div className="flex justify-center">
+                  <div className="mb-10">
+                      <div className="flex flex-col items-center gap-2">
+                        <DatePicker
+                            selected={selectedDate}
+                            onChange={(date:Date) => setSelectedDate(date)}
+                            className="border-2 border-emerald-900 "
+                            dateFormat="dd/MM/yyyy"
+                        />
+                        <button onClick={() => filtrarRegistros()} className="bg-emerald-900 hover:bg-emerald-700 text-sm p-1 text-white px-3 ml-1 mr-1 rounded transition duration-300 ease-in-out md:text-xl ">Buscar data de coleta</button>
+                      </div>
+                      <div className="flex flex-col items-center gap-2 mt-1.5">
+                        <input
+                            type="text"
+                            placeholder="Buscar por nome de fazenda"
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            className="border-2 border-emerald-900 rounded"
+                        />
+                        <button onClick={handleSearch} className="bg-emerald-900 hover:bg-emerald-700 text-white px-3 ml-1 rounded transition duration-300 ease-in-out md:text-xl md:p-1" >Buscar</button>
+                      </div>
+                  </div>
                 </div>
 
                 <div className=" flex justify-center ">

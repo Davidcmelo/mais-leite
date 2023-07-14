@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import { rajdhani } from "../app/layout"
 import Select from 'react-select'
-import DateRangePicker from 'react-datepicker';
+import DateRangePicker, { registerLocale } from 'react-datepicker';
+import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from "date-fns";
-
-
+import { ptBR } from "date-fns/locale";
 
 interface FazendasCadastradas {
     id: string;
@@ -37,9 +37,9 @@ export default function Resumo() {
     const [valorLeite, setValorLeite] = useState<number>(0);
     const [fazendaSelecionada, setFazendaSelecionada] = useState<FazendasCadastradas | null>(null);
     const [valorProducao, setValorProducao] = useState<number>(0);
-    const [totalProducao, setTotalProducao] = useState<number>(0);
-   
-  
+    const [dataPagamento, setDataPagamento] = useState<Date | null>(new Date())
+
+    registerLocale('pt-BR', ptBR);
     useEffect(() => {
       fetchData();
       fetchLitrosData();
@@ -90,15 +90,15 @@ export default function Resumo() {
       }
     }
 
+ 
     function filtrarProducoes() {
-      if (fazendaSelecionadaId && periodoDatas[0] && periodoDatas[1]) {
+      if (fazendaSelecionadaId && periodoDatas[0]) {
         const producoesFiltradas = cadastrosLitros.filter(
           (producao) =>
             producao.fazendaId === fazendaSelecionadaId &&
-            periodoDatas[0] !== null && 
-            periodoDatas[1] !== null && 
-            producao.time >= periodoDatas[0] &&
-            producao.time <= periodoDatas[1]
+            periodoDatas[0] !== null &&
+            producao.time.getMonth() === periodoDatas[0].getMonth() &&
+            producao.time.getFullYear() === periodoDatas[0].getFullYear()
         );
         const fazendaSelecionada = fazendasCadastradas.find(
             (cadastro) => cadastro.id === fazendaSelecionadaId
@@ -110,6 +110,7 @@ export default function Resumo() {
         setFazendaSelecionada(null)
       }
     }
+  
     console.log("producoes", producoesFiltradas)
 
     function calcularTotalProducao(producoes: CadastrosLitros[]): number {
@@ -126,7 +127,41 @@ export default function Resumo() {
         const valorProducao = valorLeite * producaoTotal;
         const fazendaNome = fazendaSelecionada?.nome || '';
         setValorProducao(valorProducao)
+        pagamentoFinal()
       }
+
+      async function pagamentoFinal() {
+        try {
+          const valorContaFinal = calcularTotalProducao(producoesFiltradas) * valorLeite;
+      
+          const response = await fetch("/api/resumo/create/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fazenda: fazendaSelecionada?.nome,
+              litros: calcularTotalProducao(producoesFiltradas),
+              valor: valorLeite,
+              contaFinal: valorContaFinal,
+              dataPagamento
+            }),
+          });
+      
+          if (response.ok) {
+            console.log("Dados do resumo enviados com sucesso!");
+          } else {
+            console.error("Erro ao enviar os dados do resumo:", response.status);
+          }
+        } catch (error) {
+          console.error("Erro ao enviar os dados do resumo:", error);
+        }
+      }
+
+
+      const handleMonthChange = (date) => {
+        setPeriodoDatas([date, null]); // Define o dia 1 como a data inicial e null como a data final
+      };
   
     return (
         <div className="items-center text-center">
@@ -139,20 +174,26 @@ export default function Resumo() {
                 value: cadastro.id,
                 label: cadastro.nome,
                 }))}
-                className="w-1/2 border-2 border-emerald-900 rounded"
+                className="w-1/4 text-xl border-2 border-emerald-900 rounded"
                 placeholder="Selecione a fazenda"
                 onChange={(selectedOption) => setFazendaSelecionadaId(selectedOption?.value || "")}
             />
         </div>
         <div className="flex p-4  flex-col items-center justify-center">
-          <DateRangePicker
-            startDate={periodoDatas[0]}
-            endDate={periodoDatas[1]}
-            onChange={(dates) => setPeriodoDatas(dates)}
-            selectsRange
-            placeholderText="Selecione o período de coleta"
-            className="border-2 border-emerald-900 rounded"
-            dateFormat="dd/MM/yyyy"
+
+
+            <DatePicker
+            selected={periodoDatas[0]}
+            // endDate={periodoDatas[1]}
+            onChange={handleMonthChange}
+            // selectsRange
+            placeholderText="Selecione o mês de coleta"
+            className="border-2 border-emerald-900 rounded text-center"
+            
+            dateFormat="MM/yyyy"
+            showMonthYearPicker
+            locale="pt-BR"
+            
           />
           <button
             className="bg-emerald-900 hover:bg-emerald-700 text-white font-medium p-1 rounded transition duration-300 ease-in-out mt-4"
@@ -177,11 +218,6 @@ export default function Resumo() {
                     <td className="text-center border border-b-neutral-100">{producao.litros}</td>
                     </tr>
                 ))}
-                {/* <tr>
-                <td className="text-center pr-2 pt-2" colSpan={2}>
-                    Total: {calcularTotalProducao(producoesFiltradas)} Litros
-                </td>
-                </tr> */}
                 </tbody>
             </table>
         </div>
@@ -189,14 +225,14 @@ export default function Resumo() {
             <input 
                 type="number" 
                 placeholder="Valor do leite"
-                className="border-2 border-emerald-900 rounded w-32"
+                className="border-2 border-emerald-900 rounded w-32 text-center"
                 value={valorLeite}
                 onChange={(event) => setValorLeite(parseFloat(event.target.value))}
             />
             <button onClick={calcularValor} className="bg-emerald-900 hover:bg-emerald-700 text-white font-medium rounded transition duration-300 ease-in-out p-1">Calcular produção da fazenda</button>
         </div>
             <div className="flex justify-center">
-                <div className=" border-2 border-emerald-900 rounded mt-3 w-2/12 ">
+                <div className=" border-2 border-emerald-900 rounded mt-3 inline-block p-2 ">
                     <p className="font-bold"> Fazenda {fazendaSelecionada?.nome}</p>
                     <p>Litros: {calcularTotalProducao(producoesFiltradas).toLocaleString()}</p>
                     <p>Valor:  {valorProducao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
@@ -206,5 +242,20 @@ export default function Resumo() {
       </div>
     );
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
