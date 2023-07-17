@@ -15,6 +15,7 @@ interface FazendasCadastradas {
     endereco: string;
     fazendaId: string;
     fazenda: string;
+  
   }
 
   interface CadastrosLitros {
@@ -35,7 +36,7 @@ export default function Resumo() {
     const [cadastrosLitros, setCadastrosLitros] = useState<CadastrosLitros[]>([]);
     const [producoesFiltradas, setProducoesFiltradas] = useState<CadastrosLitros[]>([]);
     const [valorLeite, setValorLeite] = useState<number>(0);
-    const [fazendaSelecionada, setFazendaSelecionada] = useState<FazendasCadastradas | null>(null);
+    const [fazendaSelecionada, setFazendaSelecionada] = useState<FazendasCadastradas | null>();
     const [valorProducao, setValorProducao] = useState<number>(0);
     const [dataPagamento, setDataPagamento] = useState<Date | null>(new Date())
 
@@ -104,14 +105,14 @@ export default function Resumo() {
             (cadastro) => cadastro.id === fazendaSelecionadaId
           );
         setProducoesFiltradas(producoesFiltradas);
-        setFazendaSelecionada(fazendaSelecionada)
+        setFazendaSelecionada(fazendaSelecionada);
       } else {
         setProducoesFiltradas([]);
         setFazendaSelecionada(null)
       }
     }
   
-    console.log("producoes", producoesFiltradas)
+    console.log("FAZENDA CADAS", fazendasCadastradas)
 
     function calcularTotalProducao(producoes: CadastrosLitros[]): number {
         let total = 0;
@@ -159,8 +160,8 @@ export default function Resumo() {
       }
 
 
-      const handleMonthChange = (date) => {
-        setPeriodoDatas([date, null]); // Define o dia 1 como a data inicial e null como a data final
+      const handleMonthChange = (date:any) => {
+        setPeriodoDatas([date, null]); // o dia 1 como a data inicial e null como a data final
       };
   
     return (

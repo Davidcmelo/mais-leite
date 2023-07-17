@@ -49,8 +49,7 @@ export default function Producao(){
     const [fazendaId, setFazendaId] = useState<string | null>(null);
     const [cadastrosLitros, setCadastrosLitros]=useState<CadastrosLitros[]>([]);
     const [dataColeta, setDataColeta]= useState("");
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [filteredCadastros, setFilteredCadastros] = useState<CadastrosLitros[]>([]);
     const [searchValue, setSearchValue] = useState("");
 
@@ -78,7 +77,7 @@ export default function Producao(){
     async function Adicionar() {
       if (fazendaId && litros !== '') {
         const index = cadastrosFazendas.findIndex((cadastro) => cadastro.id === fazendaId);
-    
+       
         if (index !== -1) {
           const updatedCadastros = [...cadastrosFazendas];
           updatedCadastros[index] = {
@@ -106,7 +105,7 @@ export default function Producao(){
               console.log('Dados salvos com sucesso');
               // Atualize o estado de 'cadastros' com os novos dados
               setCadastrosFazendas(updatedCadastros);
-              const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+              const formattedDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
               await fetchLitrosData(formattedDate);
               setDataColeta(data.dataColeta)
               
@@ -137,6 +136,7 @@ export default function Producao(){
             time:new Date(item.dataColeta)
           }));
           setCadastrosLitros(litrosData);
+
        
           console.log("AAAAAAAAAA", litrosData)
 
@@ -148,9 +148,11 @@ export default function Producao(){
       }
     }
     useEffect(() => {
+      if (selectedDate) {
         const formattedDate = format(selectedDate, 'yyyy-MM-dd');
         fetchLitrosData(formattedDate);
-      }, [selectedDate]);
+      }
+    }, [selectedDate]);
 
     
       // buscar dados do banco
@@ -209,32 +211,37 @@ export default function Producao(){
       }
     }
 
+
  
+    const filtrarRegistros = () => {
+      const dataSelecionada = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+      const nomeFazendaDigitado = searchValue.toLowerCase();
+    
+      const registrosFiltrados = cadastrosLitros.filter(registro => {
+        const dataRegistro = format(new Date(registro.time), 'yyyy-MM-dd');
+        const nomeFazenda = registro.nome.toLowerCase();
+    
+        if (dataSelecionada) {
+          return dataRegistro === dataSelecionada && nomeFazenda.includes(nomeFazendaDigitado);
+        } else {
+          return nomeFazenda.includes(nomeFazendaDigitado);
+        }
+      });
+    
+      setFilteredCadastros(registrosFiltrados);
+    };
 
-      const filtrarRegistros = () => {
-        const dataSelecionada = format(selectedDate, 'yyyy-MM-dd');
-        const registrosFiltrados = cadastrosLitros.filter(registro => {
-          const dataRegistro = format(new Date(registro.time), 'yyyy-MM-dd');
-          return dataRegistro === dataSelecionada;
-        });
-        // Atualize o estado dos registros filtrados
-        // (você pode usar um novo estado ou sobrescrever o estado existente)
-        setFilteredCadastros(registrosFiltrados);
-      };
-
-      const handleSearch = () => {
-        const filteredCadastros = cadastrosLitros.filter(
-          (cadastro) =>
-            cadastro.nome.toLowerCase().includes(searchValue.toLowerCase())
-        );
-        setFilteredCadastros(filteredCadastros);
-      };
 
       const handleReset = () => {
         setSearchValue("");
-        setSelectedDate(new Date());
-        setFilteredCadastros(cadastrosLitros);
+        setSelectedDate(null);
+        
       };
+
+      function mostrarTabela(){
+       setFilteredCadastros(cadastrosLitros)
+      
+      }
 
     return(
         <div>
@@ -242,11 +249,11 @@ export default function Producao(){
                 <h1 className={`${rajdhani.className} font-semibold text-emerald-950 md:text-7xl text-2xl text-center `}>Produção</h1>
                 <p className="text-center  text-lg font-semibold text-emerald-950">Produção de leite por fazenda</p>
                 
-                <button onClick={OpenTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold md:text-3xl text-2xl p-2 md:py-6 md:px-16 rounded transition duration-300 ease-in-out">
+                {/* <button onClick={OpenTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-medium md:text-2xl text-2xl p-2 md:p-4 rounded transition duration-300 ease-in-out">
                     Consultar tabela <SearchIcon sx={{fontSize:'2.5rem'}} />
-                </button>
+                </button> */}
 
-                <button onClick={Open} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  md:text-3xl text-2xl p-2 md:py-6 md:px-16 rounded transition duration-300 ease-in-out">
+                <button onClick={Open} className="bg-emerald-900 hover:bg-emerald-700 text-white font-medium  md:text-2xl text-2xl p-2 md:p-4 rounded transition duration-300 ease-in-out">
                     Cadastrar produção  <AddIcon sx={{fontSize:'2.5rem'}}/>
                 </button>
                 
@@ -265,6 +272,7 @@ export default function Producao(){
                     <label htmlFor="input1" className="text-white md:text-3xl">Identificação da fazenda</label>
 
                     <Select
+                  
                       options={cadastrosFazendas.map((cadastro) => ({
                         value: cadastro.id,
                         label: cadastro.nome,
@@ -282,28 +290,32 @@ export default function Producao(){
                 </div>
             </div>
         </Modal>
-        {abrirTable && (
-            <>
+        
                 <div className="flex justify-center">
                   <div className="mb-10">
-                      <div className="flex flex-col items-center gap-2">
-                        <DatePicker
-                            selected={selectedDate}
-                            onChange={(date:Date) => setSelectedDate(date)}
-                            className="border-2 border-emerald-900 "
-                            dateFormat="dd/MM/yyyy"
-                        />
-                        <button onClick={() => filtrarRegistros()} className="bg-emerald-900 hover:bg-emerald-700 text-sm p-1 text-white px-3 ml-1 mr-1 rounded transition duration-300 ease-in-out md:text-xl ">Buscar data de coleta</button>
-                      </div>
-                      <div className="flex flex-col items-center gap-2 mt-1.5">
-                        <input
+                      <div className="flex items-center gap-2">
+                      <input
                             type="text"
                             placeholder="Buscar por nome de fazenda"
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
-                            className="border-2 border-emerald-900 rounded"
+                            className="border-2 border-emerald-900 rounded text-center"
                         />
-                        <button onClick={handleSearch} className="bg-emerald-900 hover:bg-emerald-700 text-white px-3 ml-1 rounded transition duration-300 ease-in-out md:text-xl md:p-1" >Buscar</button>
+                   
+                        <DatePicker
+                            selected={selectedDate}
+                            onChange={(date:Date) => setSelectedDate(date)}
+                            isClearable={true}
+                            className="border-2 border-emerald-900 text-center rounded"
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="Defina uma data"
+                        />
+                      </div>
+                      <div className="flex  items-center gap-2 mt-1.5 justify-center">
+                      <button onClick={() => filtrarRegistros()} className="bg-emerald-900 hover:bg-emerald-700 p-1 text-white  ml-1 mr-1 rounded transition duration-300 ease-in-out ">Buscar produções</button>
+                      <button onClick={handleReset} className="bg-emerald-900 hover:bg-emerald-700 text-white p-1 rounded transition duration-300 ease-in-out ">
+                           <RestartAltIcon/>
+                      </button>
                       </div>
                   </div>
                 </div>
@@ -343,20 +355,20 @@ export default function Producao(){
                             )}
                         </tbody>
                     </table>
+                </div>                
+                <div className="flex justify-center">
+                <button onClick={mostrarTabela} className="bg-emerald-900 hover:bg-emerald-700 text-white p-3 mb-5 ml-1 rounded transition duration-300 ease-in-out mt-10  md:p-1" >Mostrar todas produções</button>
+
                 </div>
-                <div className="flex justify-center mt-10">
-                    <button onClick={CloseTable} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-lg py-2 px-4 rounded transition duration-300 ease-in-out mb-10 mx-2">
-                        Fechar tabela   <CloseRoundedIcon />
-                    </button>
-                    
-                    <button onClick={handleReset} className="bg-emerald-900 hover:bg-emerald-700 text-white font-semibold  text-lg py-2 px-4 rounded transition duration-300 ease-in-out mb-10 mx-2">
-                        Redefinir Pesquisas <RestartAltIcon/>
-                    </button>
-                
-                </div>
-            </>
-        )}
+               
+          
+        
+        
             
         </div>
     )
 }
+
+
+
+
