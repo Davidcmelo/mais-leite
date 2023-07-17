@@ -7,6 +7,9 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import SaveIcon from '@mui/icons-material/Save';
+import {jsPDF} from "jspdf";
+import "jspdf-autotable"; 
 
 interface FazendasCadastradas {
     id: string;
@@ -159,10 +162,56 @@ export default function Resumo() {
         }
       }
 
-
       const handleMonthChange = (date:any) => {
         setPeriodoDatas([date, null]); // o dia 1 como a data inicial e null como a data final
       };
+
+
+
+
+      const gerarPDF = () => {
+        const doc = new jsPDF();
+        const fazendaSelecionadaNome = fazendaSelecionada?.nome || '';
+        doc.setFontSize(20);
+        const titleWidth = doc.getStringUnitWidth(`Relatório de Produção da Fazenda ${fazendaSelecionadaNome}`) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const xPosition = (pageWidth - titleWidth) / 2;
+        doc.text(`Relatório de Produção da Fazenda ${fazendaSelecionadaNome}`, xPosition, 15);
+
+
+      
+        const tableData: any = [];
+        producoesFiltradas.forEach((producao, index) => {
+          const rowData = [
+            producao.time.toLocaleDateString(),
+            producao.litros.toString(),
+          ];
+          tableData.push(rowData);
+        });
+      
+        const tableConfig = {
+          startY: 30,
+          margin: { top: 10 },
+          head: [['Data', 'Litros']],
+          body: tableData
+        };
+      
+        doc.autoTable(tableConfig);
+      
+        doc.setFontSize(16);
+    
+        // Adicionando as informações abaixo da tabela
+        doc.text(`Total de Litros: ${calcularTotalProducao(producoesFiltradas).toLocaleString()}`, 15, doc.autoTable.previous.finalY + 40);
+        doc.text(`Preço do Leite: ${valorLeite.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, 15, doc.autoTable.previous.finalY + 50);
+        doc.text(`Valor: ${valorProducao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, 15, doc.autoTable.previous.finalY + 60);
+      
+        doc.save(`relatorio_producao_fazenda_${fazendaSelecionadaNome}.pdf`);
+      };
+
+
+
+
+
   
     return (
         <div className="items-center text-center">
@@ -231,9 +280,10 @@ export default function Resumo() {
                 onChange={(event) => setValorLeite(parseFloat(event.target.value))}
             />
             <button onClick={calcularValor} className="bg-emerald-900 hover:bg-emerald-700 text-white font-medium rounded transition duration-300 ease-in-out p-1">Calcular produção da fazenda</button>
+            <button onClick={gerarPDF} className="bg-emerald-900 hover:bg-emerald-700 text-white font-medium rounded transition duration-300 ease-in-out p-1"> <SaveIcon/></button>
         </div>
             <div className="flex justify-center">
-                <div className=" border-2 border-emerald-900 rounded mt-3 inline-block p-2 ">
+                <div className=" border-2 border-emerald-900 rounded mt-3 mb-3 inline-block p-2 ">
                     <p className="font-bold"> Fazenda {fazendaSelecionada?.nome}</p>
                     <p>Litros: {calcularTotalProducao(producoesFiltradas).toLocaleString()}</p>
                     <p>Valor:  {valorProducao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>

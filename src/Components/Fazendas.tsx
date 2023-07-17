@@ -6,6 +6,7 @@ import { Edit, Delete} from '@material-ui/icons';
 import CloseIcon from '@mui/icons-material/Close';
 import Loading from "@/app/loading";
 import Producao from "./Producao";
+import {Pagination , Stack} from '@mui/material'
 
 
 export interface CadastrarProps{
@@ -27,6 +28,11 @@ export default function Fazendas() {
     const [alertSuccess, setAlertSuccess] = useState(false);
     const [alertError, setAlertError] = useState(false);
     const [id, setId] = useState<number | null>(null);
+    const [paginaAtual, setPaginaAtual] = useState(1)
+
+    const itemPorPage = 10; 
+
+
 
     const handleOpenn = () => setOpen(true);
 
@@ -205,6 +211,17 @@ export default function Fazendas() {
     }
 
 
+    const getPaginacao = () =>{
+        const pageLast = paginaAtual * itemPorPage;
+        const pageFirst = pageLast - itemPorPage;
+        return cadastros.slice(pageFirst, pageLast) 
+    }
+
+    const MudarPagina=(event:any, page:any)=>{
+        setPaginaAtual(page)
+    }
+
+
     return (
         <div>
  
@@ -261,7 +278,7 @@ export default function Fazendas() {
                     </tr>
                 </thead>
                 <tbody className="text-center">
-                    {cadastros.map((cadastro, index) => (
+                    {getPaginacao().map((cadastro, index) => (
                         <tr key={index}>
                             <td className=" border border-b-neutral-100">{cadastro.nome}</td>
                             <td className=" border border-b-neutral-100">{cadastro.endereco}</td>
@@ -284,6 +301,7 @@ export default function Fazendas() {
                             </td>
                         </tr>
                     ))}
+                    
                     {cadastros.length === 0 && (
                         <tr>
                           <Loading/>
@@ -294,6 +312,18 @@ export default function Fazendas() {
                     )}
                 </tbody>
             </table>
+
+        </div>
+        <div className="mt-4">
+            <Stack spacing={2} justifyContent="center" alignItems="center" mt="4">
+                            <Pagination
+                            count={Math.ceil(cadastros.length/ itemPorPage)}
+                            page={paginaAtual}
+                            onChange={MudarPagina}
+                            variant="outlined"
+                            color="primary"
+                            />
+                        </Stack>
         </div>
     </div>
     );
